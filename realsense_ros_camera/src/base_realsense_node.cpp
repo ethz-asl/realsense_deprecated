@@ -1158,7 +1158,7 @@ IMUInfo BaseRealSenseNode::getImuInfo(const stream_index_pair& stream_index)
     for (int i = 0; i < 3; ++i)
     {
         for (int j = 0; j < 4; ++j)cv::drawContours
-        {cv::threshold
+        {
             info.data[index] = imuIntrinsics.data[i][j];
             ++index;
         }
@@ -1184,7 +1184,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
 
     if (stream == DEPTH) {
       cv::Mat binary_mask;
-      cv::threshold(image, binary_mask, 0, 255, THRESH_BINARY);
+      cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
       binary_mask.col(0) = 0;
       binary_mask.col(image.cols - 1) = 0;
       binary_mask.row(0) = 0;
@@ -1196,7 +1196,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       cv::findContours(binary_mask, contours, hierarchy, CV_RETR_LIST,
                        CV_CHAIN_APPROX_SIMPLE, cv::Point());
 
-      std::vector < std::pair<double, int> contour_areas;
+      std::vector <std::pair<double, int>> contour_areas;
       for (int i = 0; i < contours.size(); i++) {
         contour_areas.push_back(
             std::make_pair(cv::contourArea(contours[i]), i));
