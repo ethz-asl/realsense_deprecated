@@ -1191,7 +1191,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       
       for(size_t x = 0; x < 640; ++x){
         for(size_t y = 0; y < 480; ++y){
-            binary_mask.at<uint8_t>(x,y) = image.at<uint16_t>(y,x);
+            binary_mask.at<uint8_t>(y,x) = image.at<uint16_t>(x,y);
         }
       }
       /*cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
