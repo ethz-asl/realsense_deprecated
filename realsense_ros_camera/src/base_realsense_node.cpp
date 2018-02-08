@@ -1185,8 +1185,9 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
     if (copy_data_from_frame)
         image.data = (uint8_t*)f.get_data();
 
+    cv::Mat binary_mask(480,640, CV_8UC1);
     if (stream == DEPTH) {
-      cv::Mat binary_mask(480,640, CV_8UC1);
+      
       /*cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
       binary_mask.convertTo(binary_mask, CV_8UC1);
 
