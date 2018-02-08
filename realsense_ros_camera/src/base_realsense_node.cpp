@@ -1189,12 +1189,8 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       cv::Mat binary_mask;
       cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
       //binary_mask.convertTo(binary_mask, CV_8UC1);
-      binary_mask.col(0) = 0;
-      binary_mask.col(image.cols - 1) = 0;
-      binary_mask.row(0) = 0;
-      binary_mask.row(image.rows - 1) = 0;
 
-      image = binary_mask;/*
+      image = binary_mask;
 
       std::vector<std::vector<cv::Point>> contours;
       std::vector<cv::Vec4i> hierarchy;
