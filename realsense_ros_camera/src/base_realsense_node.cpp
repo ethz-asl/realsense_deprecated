@@ -1215,8 +1215,9 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       }
 
       cv::Mat masked_image;
-      //image.copyTo(masked_image, binary_mask);
+      image.copyTo(masked_image, binary_mask);
       image = masked_image;
+      image = 0;
     }
 
     if (copy_data_from_frame)
