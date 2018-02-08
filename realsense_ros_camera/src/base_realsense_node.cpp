@@ -1157,7 +1157,7 @@ IMUInfo BaseRealSenseNode::getImuInfo(const stream_index_pair& stream_index)
     auto index = 0;
     for (int i = 0; i < 3; ++i)
     {
-        for (int j = 0; j < 4; ++j)cv::drawContours
+        for (int j = 0; j < 4; ++j)
         {
             info.data[index] = imuIntrinsics.data[i][j];
             ++index;
@@ -1203,7 +1203,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       }
       std::sort(contour_areas.begin(), contour_areas.end());
 
-      for (std::vector<int>::reverse_iterator rit = contour_areas.rbegin();
+      for (std::vector<std::pair<double, int>>::reverse_iterator rit = contour_areas.rbegin();
            rit != contour_areas.rend(); ++rit) {
         if (rit.first > max_speckle_size) {
           cv::drawContours(binary_mask, contours, rit.second, 255, CV_FILLED,
