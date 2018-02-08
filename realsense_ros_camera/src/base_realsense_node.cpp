@@ -1214,7 +1214,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
           cv::drawContours(binary_mask, contours, rit->second, 255, CV_FILLED,
                            8);
         } else {
-          //cv::drawContours(binary_mask, contours, rit->second, 0, CV_FILLED, 8);
+          cv::drawContours(binary_mask, contours, rit->second, 0, CV_FILLED, 8);
         }
       }
 
