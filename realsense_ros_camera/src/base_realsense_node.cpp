@@ -1199,11 +1199,13 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
                        CV_CHAIN_APPROX_NONE);
 
       binary_mask = 255;
-      for (size_t i = 0; i < contours.size(); i++) {
+      /*for (size_t i = 0; i < contours.size(); i++) {
         if(cv::contourArea(contours[i]) < _max_speckle_size){
             cv::drawContours(binary_mask, contours, i, 0, 1, 8);
         }
-      }
+      }*/
+
+      cv::circle(binary_mask, cv::Point(300,300), 20, 0);
 
       cv::Mat masked_image;
       image.copyTo(masked_image, binary_mask);
