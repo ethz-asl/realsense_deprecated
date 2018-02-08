@@ -1186,7 +1186,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
         image.data = (uint8_t*)f.get_data();
 
     if (stream == DEPTH) {
-      cv::Mat binary_mask(640,480, CV_8UC1);
+      cv::Mat binary_mask(480,640, CV_8UC1);
       /*cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
       binary_mask.convertTo(binary_mask, CV_8UC1);
 
@@ -1206,11 +1206,6 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       }*/
 
       cv::circle(binary_mask, cv::Point(300,300), 20, 0);
-
-      cv::Mat masked_image;
-      image.copyTo(masked_image, binary_mask);
-      //image = masked_image;
-      binary_mask.convertTo(image, CV_16UC1);
     }
 
     ++(seq[stream]);
@@ -1231,7 +1226,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
         }
 
         sensor_msgs::ImagePtr img;
-        img = cv_bridge::CvImage(std_msgs::Header(), encoding.at(stream), image).toImageMsg();
+        img = cv_bridge::CvImage(std_msgs::Header(), "mono8", image).toImageMsg();
         /*img->width = width;
         img->height = height;
         img->is_bigendian = false;
