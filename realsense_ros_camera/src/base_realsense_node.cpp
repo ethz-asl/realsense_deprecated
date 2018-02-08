@@ -1188,11 +1188,11 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
     if (stream == DEPTH) {
       cv::Mat binary_mask;
       cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
-      //binary_mask.convertTo(binary_mask, CV_8UC1);
+      binary_mask.convertTo(binary_mask, CV_8UC1);
 
       image = binary_mask;
 
-      /*std::vector<std::vector<cv::Point>> contours;
+      std::vector<std::vector<cv::Point>> contours;
       std::vector<cv::Vec4i> hierarchy;
 
       cv::findContours(binary_mask, contours, hierarchy, CV_RETR_LIST,
@@ -1207,7 +1207,8 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
 
       cv::Mat masked_image;
       image.copyTo(masked_image, binary_mask);
-      image = masked_image;*/
+      //image = masked_image;
+      binary_mask.convertTo(image, CV_16UC1)
     }
 
     ++(seq[stream]);
