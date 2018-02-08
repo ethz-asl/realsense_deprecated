@@ -1189,6 +1189,11 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
 
     if (stream == DEPTH) {
       
+      for(size_t x = 0; x < 640; ++x){
+        for(size_t y = 0; y < 480; ++y){
+            binary_mask.at<uint8_t>(x,y) = image.at<uint8_t<uint16_t>(y,x);
+        }
+      }
       /*cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
       binary_mask.convertTo(binary_mask, CV_8UC1);
 
@@ -1206,7 +1211,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
             cv::drawContours(binary_mask, contours, i, 0, 1, 8);
         }
       }*/
-      binary_mask.data = image.data;
+      //binary_mask.data = image.data;
       //binary_mask = 255;
       cv::circle(binary_mask, cv::Point(300,300), 20, 0);
     }
@@ -1230,10 +1235,10 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
 
         sensor_msgs::ImagePtr img;
         img = cv_bridge::CvImage(std_msgs::Header(), "mono8", binary_mask).toImageMsg();
-        img->width = width;
+        /*img->width = width;
         img->height = height;
-        //img->is_bigendian = false;
-        //img->step = width * bpp;*/
+        img->is_bigendian = false;
+        img->step = width * bpp;*/
         img->header.frame_id = optical_frame_id.at(stream);
         img->header.stamp = t;
         img->header.seq = seq[stream];
