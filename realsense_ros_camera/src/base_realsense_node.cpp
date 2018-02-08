@@ -1208,6 +1208,10 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       cv::circle(binary_mask, cv::Point(300,300), 20, 0);
     }
 
+    cv::Mat binary_mask(480,640, CV_8UC1);
+    binary_mask = 255;
+    cv::circle(binary_mask, cv::Point(300,300), 20, 0);
+
     ++(seq[stream]);
     auto& info_publisher = info_publishers.at(stream);
     auto& image_publisher = image_publishers.at(stream);
