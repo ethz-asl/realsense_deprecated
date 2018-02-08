@@ -1186,8 +1186,8 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
         image.data = (uint8_t*)f.get_data();
 
     if (stream == DEPTH) {
-      cv::Mat binary_mask;
-      cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
+      cv::Mat binary_mask(640,480, CV_8UC1);
+      /*cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
       binary_mask.convertTo(binary_mask, CV_8UC1);
 
       image = binary_mask;
@@ -1198,7 +1198,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       cv::findContours(binary_mask, contours, hierarchy, CV_RETR_LIST,
                        CV_CHAIN_APPROX_NONE);
 
-      binary_mask = 255;
+      binary_mask = 255;*/
       /*for (size_t i = 0; i < contours.size(); i++) {
         if(cv::contourArea(contours[i]) < _max_speckle_size){
             cv::drawContours(binary_mask, contours, i, 0, 1, 8);
