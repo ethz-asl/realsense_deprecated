@@ -1200,24 +1200,12 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       cv::findContours(binary_mask, contours, hierarchy, CV_RETR_LIST,
                        CV_CHAIN_APPROX_SIMPLE, cv::Point());
 
-      std::vector <std::pair<double, int>> contour_areas;
+      binary_mask = 1;
       for (size_t i = 0; i < contours.size(); i++) {
-        contour_areas.push_back(
-            std::make_pair(cv::contourArea(contours[i]), i));
-      }
-      std::sort(contour_areas.begin(), contour_areas.end());
-
-      binary_mask = 0;
-      for (std::vector<std::pair<double, int>>::reverse_iterator rit = contour_areas.rbegin();
-           rit != contour_areas.rend(); ++rit) {
-        if (rit->first > _max_speckle_size) {
-          cv::drawContours(binary_mask, contours, rit->second, 255, CV_FILLED,
-                           8);
-        } else {
-          cv::drawContours(binary_mask, contours, rit->second, 0, CV_FILLED, 8);
+        if(cv::contourArea(contours[i]) < _max_speckle_size){
+            cv::drawContours(binary_mask, contours, i, 0, CV_FILLED, 8);
         }
       }
-      binary_mask = 1;
 
       cv::Mat masked_image;
       image.copyTo(masked_image, binary_mask);
