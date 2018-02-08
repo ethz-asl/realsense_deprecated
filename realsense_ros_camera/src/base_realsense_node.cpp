@@ -1054,33 +1054,12 @@ void BaseRealSenseNode::publishRgbToDepthPCTopic(const ros::Time& t, const std::
         return;
     }
 
+    pcl::PointCloud<pcl::PointXYZRGB> pointcloud;
+
     auto& depth2color_extrinsics = _depth_to_other_extrinsics[COLOR];
     auto color_intrinsics = _stream_intrinsics[COLOR];
     auto image_depth16 = reinterpret_cast<const uint16_t*>(_image[DEPTH].data);
     auto depth_intrinsics = _stream_intrinsics[DEPTH];
-    sensor_msgs::PointCloud2 msg_pointcloud;
-    msg_pointcloud.header.stamp = t;
-    msg_pointcloud.header.frame_id = _optical_frame_id[DEPTH];
-    msg_pointcloud.width = depth_intrinsics.width;
-    msg_pointcloud.height = depth_intrinsics.height;
-    msg_pointcloud.is_dense = true;
-
-    sensor_msgs::PointCloud2Modifier modifier(msg_pointcloud);
-
-    modifier.setPointCloud2Fields(4,
-                                  "x", 1, sensor_msgs::PointField::FLOAT32,
-                                  "y", 1, sensor_msgs::PointField::FLOAT32,
-                                  "z", 1, sensor_msgs::PointField::FLOAT32,
-                                  "rgb", 1, sensor_msgs::PointField::FLOAT32);
-    modifier.setPointCloud2FieldsByString(2, "xyz", "rgb");
-
-    sensor_msgs::PointCloud2Iterator<float>iter_x(msg_pointcloud, "x");
-    sensor_msgs::PointCloud2Iterator<float>iter_y(msg_pointcloud, "y");
-    sensor_msgs::PointCloud2Iterator<float>iter_z(msg_pointcloud, "z");
-
-    sensor_msgs::PointCloud2Iterator<uint8_t>iter_r(msg_pointcloud, "r");
-    sensor_msgs::PointCloud2Iterator<uint8_t>iter_g(msg_pointcloud, "g");
-    sensor_msgs::PointCloud2Iterator<uint8_t>iter_b(msg_pointcloud, "b");
 
     float depth_point[3], color_point[3], color_pixel[2], scaled_depth;
     unsigned char* color_data = _image[COLOR].data;
@@ -1096,14 +1075,14 @@ void BaseRealSenseNode::publishRgbToDepthPCTopic(const ros::Time& t, const std::
 
             if (depth_point[2] <= 0.f || depth_point[2] > 5.f)
             {
-                depth_point[0] = 0.f;
-                depth_point[1] = 0.f;
-                depth_point[2] = 0.f;
+                ++image_depth16;
+                continue;
             }
 
-            *iter_x = depth_point[0];
-            *iter_y = depth_point[1];
-            *iter_z = depth_point[2];
+            pcl::PointXYZRGB point;
+            point.x = depth_point[0];
+            point.y = depth_point[1];
+            point.z = depth_point[2];
 
             rs2_transform_point_to_point(color_point, &depth2color_extrinsics, depth_point);
             rs2_project_point_to_pixel(color_pixel, &color_intrinsics, color_point);
@@ -1111,30 +1090,28 @@ void BaseRealSenseNode::publishRgbToDepthPCTopic(const ros::Time& t, const std::
             if (color_pixel[1] < 0.f || color_pixel[1] > color_intrinsics.height
                 || color_pixel[0] < 0.f || color_pixel[0] > color_intrinsics.width)
             {
-                // For out of bounds color data, default to a shade of blue in order to visually distinguish holes.
-                // This color value is same as the librealsense out of bounds color value.
-                *iter_r = static_cast<uint8_t>(96);
-                *iter_g = static_cast<uint8_t>(157);
-                *iter_b = static_cast<uint8_t>(198);
+                ++image_depth16;
+                continue;
             }
             else
             {
                 auto i = static_cast<int>(color_pixel[0]);
                 auto j = static_cast<int>(color_pixel[1]);
-
                 auto offset = i * 3 + j * color_intrinsics.width * 3;
-                *iter_r = static_cast<uint8_t>(color_data[offset]);
-                *iter_g = static_cast<uint8_t>(color_data[offset + 1]);
-                *iter_b = static_cast<uint8_t>(color_data[offset + 2]);
+                point.r = static_cast<uint8_t>(color_data[offset]);
+                point.g = static_cast<uint8_t>(color_data[offset + 1]);
+                point.b = static_cast<uint8_t>(color_data[offset + 2]);
             }
 
             ++image_depth16;
-            ++iter_x; ++iter_y; ++iter_z;
-            ++iter_r; ++iter_g; ++iter_b;
         }
     }
 
-    _pointcloud_publisher.publish(msg_pointcloud);
+    sensor_msgs::PointCloud2 pointcloud_msg;
+    pcl::toROSMsg(pointcloud, pointcloud_msg);
+    pointcloud_msg.header.stamp = t;
+    pointcloud_msg.frame_id = _optical_frame_id[DEPTH];
+    _pointcloud_publisher.publish(pointcloud_msg);
 }
 
 Extrinsics BaseRealSenseNode::rsExtrinsicsToMsg(const rs2_extrinsics& extrinsics, const std::string& frame_id) const
