@@ -1192,7 +1192,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
 
       image = binary_mask;
 
-      std::vector<std::vector<cv::Point>> contours;
+      /*std::vector<std::vector<cv::Point>> contours;
       std::vector<cv::Vec4i> hierarchy;
 
       cv::findContours(binary_mask, contours, hierarchy, CV_RETR_LIST,
