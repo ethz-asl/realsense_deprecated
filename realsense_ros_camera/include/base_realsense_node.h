@@ -102,6 +102,8 @@ namespace realsense_ros_camera
         std::string _serial_no;
         float _depth_scale_meters;
 
+        int _max_speckle_size;
+        double _max_speckle_diff;
         std::map<stream_index_pair, rs2_intrinsics> _stream_intrinsics;
         std::map<stream_index_pair, int> _width;
         std::map<stream_index_pair, int> _height;

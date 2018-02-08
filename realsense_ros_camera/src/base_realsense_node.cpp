@@ -1,6 +1,7 @@
 #include "../include/base_realsense_node.h"
 #include "../include/sr300_node.h"
 #include <pcl_conversions/pcl_conversions.h>
+#include <opencv2/calib3d/calib3d.hpp>
 
 using namespace realsense_ros_camera;
 
@@ -102,7 +103,7 @@ void BaseRealSenseNode::getParameters()
     ROS_INFO("getParameters...");
 
     _pnh.param("max_speckle_size", _max_speckle_size, 1);
-    _pnh.param("max_speckle_diff", _max_speckle_diff, 1000);
+    _pnh.param("max_speckle_diff", _max_speckle_diff, 1000.0);
 
     _pnh.param("align_depth", _align_depth, ALIGN_DEPTH);
     _pnh.param("enable_pointcloud", _pointcloud, POINTCLOUD);

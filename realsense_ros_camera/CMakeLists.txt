@@ -3,6 +3,8 @@ project(realsense_ros_camera)
 
 option(BUILD_WITH_OPENMP "Use OpenMP" ON)
 
+find_package(OpenCV 3 REQUIRED COMPONENTS core calib3d)
+
 find_package(catkin REQUIRED COMPONENTS
     message_generation
     roscpp
@@ -94,11 +96,12 @@ add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencfg)
 
 add_executable(realsense_node src/realsense_node.cpp)
-target_link_libraries(realsense_node ${catkin_LIBRARIES})
+target_link_libraries(realsense_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
 target_link_libraries(${PROJECT_NAME}
     realsense2
     ${catkin_LIBRARIES}
+    ${OpenCV_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     )
 
