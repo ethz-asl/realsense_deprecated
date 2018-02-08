@@ -1198,10 +1198,10 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       cv::findContours(binary_mask, contours, hierarchy, CV_RETR_LIST,
                        CV_CHAIN_APPROX_NONE);
 
-      binary_mask = 1;
+      binary_mask = 255;
       for (size_t i = 0; i < contours.size(); i++) {
         if(cv::contourArea(contours[i]) < _max_speckle_size){
-            cv::drawContours(binary_mask, contours, i, 0, CV_FILLED, 8);
+            cv::drawContours(binary_mask, contours, i, 0, 1, 8);
         }
       }
 
