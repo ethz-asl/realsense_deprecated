@@ -1186,7 +1186,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
         image.data = (uint8_t*)f.get_data();
 
     if (stream == DEPTH) {
-      image = image.convertTo(image, CV_16SC1);
+      image.convertTo(image, CV_16SC1);
       cv::filterSpeckles(image, 0, _max_speckle_size, _max_speckle_diff);
     }
 
