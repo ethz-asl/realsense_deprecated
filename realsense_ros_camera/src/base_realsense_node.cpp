@@ -1185,6 +1185,45 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
     if (copy_data_from_frame)
         image.data = (uint8_t*)f.get_data();
 
+    if (stream == DEPTH) {
+      cv::Mat binary_mask;
+      cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
+      binary_mask.convertTo(binary_mask, CV_8UC1);
+      binary_mask.col(0) = 0;
+      binary_mask.col(image.cols - 1) = 0;
+      binary_mask.row(0) = 0;
+      binary_mask.row(image.rows - 1) = 0;
+
+      std::vector<std::vector<cv::Point>> contours;
+      std::vector<cv::Vec4i> hierarchy;
+
+      cv::findContours(binary_mask, contours, hierarchy, CV_RETR_LIST,
+                       CV_CHAIN_APPROX_SIMPLE, cv::Point());
+
+      std::vector <std::pair<double, int>> contour_areas;
+      for (size_t i = 0; i < contours.size(); i++) {
+        contour_areas.push_back(
+            std::make_pair(cv::contourArea(contours[i]), i));
+      }
+      std::sort(contour_areas.begin(), contour_areas.end());
+
+      binary_mask = 0;
+      for (std::vector<std::pair<double, int>>::reverse_iterator rit = contour_areas.rbegin();
+           rit != contour_areas.rend(); ++rit) {
+        if (rit->first > _max_speckle_size) {
+          cv::drawContours(binary_mask, contours, rit->second, 255, CV_FILLED,
+                           8);
+        } else {
+          cv::drawContours(binary_mask, contours, rit->second, 0, CV_FILLED, 8);
+        }
+      }
+      binary_mask = 1;
+
+      cv::Mat masked_image;
+      image.copyTo(masked_image, binary_mask);
+      image = masked_image;
+    }
+
     ++(seq[stream]);
     auto& info_publisher = info_publishers.at(stream);
     auto& image_publisher = image_publishers.at(stream);
@@ -1200,11 +1239,6 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
             width = image.get_width();
             height = image.get_height();
             bpp = image.get_bytes_per_pixel();
-        }
-
-        if(stream == DEPTH){
-            image.convertTo(image, CV_16SC1);
-            cv::filterSpeckles(image, 0, _max_speckle_size, _max_speckle_diff);
         }
 
         sensor_msgs::ImagePtr img;
