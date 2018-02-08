@@ -1,5 +1,6 @@
 #include "../include/base_realsense_node.h"
 #include "../include/sr300_node.h"
+#include <pcl_conversions/pcl_conversions.h>
 
 using namespace realsense_ros_camera;
 
@@ -1102,7 +1103,7 @@ void BaseRealSenseNode::publishRgbToDepthPCTopic(const ros::Time& t, const std::
                 point.g = static_cast<uint8_t>(color_data[offset + 1]);
                 point.b = static_cast<uint8_t>(color_data[offset + 2]);
             }
-
+            pointcloud.push_back(point);
             ++image_depth16;
         }
     }
@@ -1110,7 +1111,7 @@ void BaseRealSenseNode::publishRgbToDepthPCTopic(const ros::Time& t, const std::
     sensor_msgs::PointCloud2 pointcloud_msg;
     pcl::toROSMsg(pointcloud, pointcloud_msg);
     pointcloud_msg.header.stamp = t;
-    pointcloud_msg.frame_id = _optical_frame_id[DEPTH];
+    pointcloud_msg.header.frame_id = _optical_frame_id[DEPTH];
     _pointcloud_publisher.publish(pointcloud_msg);
 }
 

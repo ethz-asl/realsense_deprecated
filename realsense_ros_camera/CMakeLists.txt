@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
     image_transport
     tf
     dynamic_reconfigure
+    pcl_ros
     )
 
 if(BUILD_WITH_OPENMP)
