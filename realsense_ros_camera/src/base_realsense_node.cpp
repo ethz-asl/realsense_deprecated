@@ -1157,8 +1157,8 @@ IMUInfo BaseRealSenseNode::getImuInfo(const stream_index_pair& stream_index)
     auto index = 0;
     for (int i = 0; i < 3; ++i)
     {
-        for (int j = 0; j < 4; ++j)
-        {
+        for (int j = 0; j < 4; ++j)cv::drawContours
+        {cv::threshold
             info.data[index] = imuIntrinsics.data[i][j];
             ++index;
         }
@@ -1182,8 +1182,40 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
     ROS_DEBUG("publishFrame(...)");
     auto& image = images[stream];
 
-    if(stream == DEPTH){
-        cv::filterSpeckles(image, 0, _max_speckle_size, _max_speckle_diff);
+    if (stream == DEPTH) {
+      cv::Mat binary_mask;
+      cv::threshold(image, binary_mask, 0, 255, THRESH_BINARY);
+      binary_mask.col(0) = 0;
+      binary_mask.col(image.cols - 1) = 0;
+      binary_mask.row(0) = 0;
+      binary_mask.row(image.rows - 1) = 0;
+
+      std::vector<std::vector<cv::Point>> contours;
+      std::vector<cv::Vec4i> hierarchy;
+
+      cv::findContours(binary_mask, contours, hierarchy, CV_RETR_LIST,
+                       CV_CHAIN_APPROX_SIMPLE, cv::Point());
+
+      std::vector < std::pair<double, int> contour_areas;
+      for (int i = 0; i < contours.size(); i++) {
+        contour_areas.push_back(
+            std::make_pair(cv::contourArea(contours[i]), i));
+      }
+      std::sort(contour_areas.begin(), contour_areas.end());
+
+      for (std::vector<int>::reverse_iterator rit = contour_areas.rbegin();
+           rit != contour_areas.rend(); ++rit) {
+        if (rit.first > max_speckle_size) {
+          cv::drawContours(binary_mask, contours, rit.second, 255, CV_FILLED,
+                           8);
+        } else {
+          cv::drawContours(binary_mask, contours, rit.second, 0, CV_FILLED, 8);
+        }
+      }
+
+      cv::Mat masked_image;
+      image.copyTo(masked_image, binary_mask);
+      image = masked_image;
     }
 
     if (copy_data_from_frame)
