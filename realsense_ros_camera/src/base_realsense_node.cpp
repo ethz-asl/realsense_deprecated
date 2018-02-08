@@ -1220,9 +1220,8 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       cv::Mat masked_image;
       image.copyTo(masked_image, binary_mask);
       image = masked_image;
-      image = 0;
     }
-    
+
     ++(seq[stream]);
     auto& info_publisher = info_publishers.at(stream);
     auto& image_publisher = image_publishers.at(stream);
