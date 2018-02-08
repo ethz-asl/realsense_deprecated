@@ -1205,7 +1205,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
 
       for (std::vector<std::pair<double, int>>::reverse_iterator rit = contour_areas.rbegin();
            rit != contour_areas.rend(); ++rit) {
-        if (rit->first > max_speckle_size) {
+        if (rit->first > _max_speckle_size) {
           cv::drawContours(binary_mask, contours, rit->second, 255, CV_FILLED,
                            8);
         } else {
