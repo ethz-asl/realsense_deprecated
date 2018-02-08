@@ -1186,6 +1186,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
         image.data = (uint8_t*)f.get_data();
 
     cv::Mat binary_mask(480,640, CV_8UC1);
+
     if (stream == DEPTH) {
       
       /*cv::threshold(image, binary_mask, 0, 255, CV_THRESH_BINARY);
@@ -1205,7 +1206,9 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
             cv::drawContours(binary_mask, contours, i, 0, 1, 8);
         }
       }*/
-      image.convertTo(binary_mask, CV_8UC1);
+      image.convertTo(image, CV_8UC1);
+      transpose(image, image);
+      binary_mask.data = image.data;
       //binary_mask = 255;
       cv::circle(binary_mask, cv::Point(300,300), 20, 0);
     }
