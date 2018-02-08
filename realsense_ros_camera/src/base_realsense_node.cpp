@@ -1207,6 +1207,7 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
       }
       std::sort(contour_areas.begin(), contour_areas.end());
 
+      binary_mask = 0;
       for (std::vector<std::pair<double, int>>::reverse_iterator rit = contour_areas.rbegin();
            rit != contour_areas.rend(); ++rit) {
         if (rit->first > _max_speckle_size) {
