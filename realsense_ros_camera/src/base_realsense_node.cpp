@@ -101,6 +101,9 @@ void BaseRealSenseNode::getParameters()
 {
     ROS_INFO("getParameters...");
 
+    _pnh.param("max_speckle_size", _max_speckle_size, 1);
+    _pnh.param("max_speckle_diff", _max_speckle_diff, 1000);
+
     _pnh.param("align_depth", _align_depth, ALIGN_DEPTH);
     _pnh.param("enable_pointcloud", _pointcloud, POINTCLOUD);
     _pnh.param("enable_sync", _sync_frames, SYNC_FRAMES);
@@ -1177,6 +1180,10 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
 {
     ROS_DEBUG("publishFrame(...)");
     auto& image = images[stream];
+
+    if(stream == DEPTH){
+        cv::filterSpeckles(image, 0, _max_speckle_size, _max_speckle_diff);
+    }
 
     if (copy_data_from_frame)
         image.data = (uint8_t*)f.get_data();
