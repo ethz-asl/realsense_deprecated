@@ -1206,8 +1206,6 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
             cv::drawContours(binary_mask, contours, i, 0, 1, 8);
         }
       }*/
-      image.convertTo(image, CV_8UC1);
-      transpose(image, image);
       binary_mask.data = image.data;
       //binary_mask = 255;
       cv::circle(binary_mask, cv::Point(300,300), 20, 0);
@@ -1232,10 +1230,10 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
 
         sensor_msgs::ImagePtr img;
         img = cv_bridge::CvImage(std_msgs::Header(), "mono8", binary_mask).toImageMsg();
-        /*img->width = width;
+        img->width = width;
         img->height = height;
-        img->is_bigendian = false;
-        img->step = width * bpp;*/
+        //img->is_bigendian = false;
+        //img->step = width * bpp;*/
         img->header.frame_id = optical_frame_id.at(stream);
         img->header.stamp = t;
         img->header.seq = seq[stream];
