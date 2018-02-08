@@ -1232,10 +1232,10 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
 
         sensor_msgs::ImagePtr img;
         img = cv_bridge::CvImage(std_msgs::Header(), encoding.at(stream), image).toImageMsg();
-        img->width = width;
+        /*img->width = width;
         img->height = height;
         img->is_bigendian = false;
-        img->step = width * bpp;
+        img->step = width * bpp;*/
         img->header.frame_id = optical_frame_id.at(stream);
         img->header.stamp = t;
         img->header.seq = seq[stream];
