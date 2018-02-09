@@ -102,8 +102,8 @@ void BaseRealSenseNode::getParameters()
 {
     ROS_INFO("getParameters...");
 
-    _pnh.param("max_speckle_size", _max_speckle_size, 1);
-    _pnh.param("max_speckle_diff", _max_speckle_diff, 1000.0);
+    _pnh.param("max_speckle_size", _max_speckle_size, 500);
+    _pnh.param("max_speckle_diff", _max_speckle_diff, 50.0);
 
     _pnh.param("align_depth", _align_depth, ALIGN_DEPTH);
     _pnh.param("enable_pointcloud", _pointcloud, POINTCLOUD);
@@ -1182,8 +1182,26 @@ void BaseRealSenseNode::publishFrame(rs2::frame f, const ros::Time& t,
     ROS_DEBUG("publishFrame(...)");
     auto& image = images[stream];
 
-    if (copy_data_from_frame)
-        image.data = (uint8_t*)f.get_data();
+    if (copy_data_from_frame){
+        if( stream != DEPTH){
+            image.data = (uint8_t*)f.get_data();
+        }
+        else{
+            auto tmp = f.as<rs2::video_frame>();
+            size_t width = tmp.get_width();
+            size_t height = tmp.get_height();
+
+            //the realsense stores column major data in the row major cv::Mat, so before we can filter we must sort this bullshit
+            cv::Mat corrected_image(height,width,CV_16SC1);
+            for(size_t x = 0; x < width; ++x){
+                for(size_t y = 0; y < height; ++y){
+                    corrected_image.at<int16_t>(y,x) = ((uint16_t*)f.get_data())[y*width + x];
+                }
+            }
+            image = corrected_image;
+            cv::filterSpeckles(image, 0, _max_speckle_size, _max_speckle_diff);
+        }
+    }
 
     ++(seq[stream]);
     auto& info_publisher = info_publishers.at(stream);
