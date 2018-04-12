@@ -22,6 +22,11 @@ BaseRealSenseNode::BaseRealSenseNode(ros::NodeHandle& nodeHandle,
     _intialize_time_base(false),
     _namespace(getNamespaceStr())
 {
+
+    device_time_translator_.reset(new cuckoo_time_translator::UnwrappedDeviceTimeTranslator(cuckoo_time_translator::ClockParameters(1e9),
+                                  _pnh.getNamespace(),
+                                  cuckoo_time_translator::Defaults().setFilterAlgorithm(cuckoo_time_translator::FilterAlgorithm::ConvexHull)));
+
     // Types for depth stream
     _is_frame_arrived[DEPTH] = false;
     _format[DEPTH] = RS2_FORMAT_Z16;   // libRS type
@@ -531,24 +536,22 @@ void BaseRealSenseNode::setupStreams()
         auto frame_callback = [this](rs2::frame frame)
         {
             try{
-                // We compute a ROS timestamp which is based on an initial ROS time at point of first frame,
-                // and the incremental timestamp from the camera.
-                // In sync mode the timestamp is based on ROS time
-                if (false == _intialize_time_base)
-                {
-                    if (RS2_TIMESTAMP_DOMAIN_SYSTEM_TIME == frame.get_frame_timestamp_domain())
-                        ROS_WARN("Frame metadata isn't available! (frame_timestamp_domain = RS2_TIMESTAMP_DOMAIN_SYSTEM_TIME)");
-
-                    _intialize_time_base = true;
-                    _ros_time_base = ros::Time::now();
-                    _camera_time_base = frame.get_timestamp();
+                static double last_timestamp = 0;
+                if(frame.get_timestamp() > last_timestamp){
+                    device_time_translator_->update(static_cast<std::uint64_t>(frame.get_timestamp() * 1e6), ros::Time::now());
+                    last_timestamp = frame.get_timestamp();
                 }
 
                 ros::Time t;
-                if (_sync_frames)
-                    t = ros::Time::now();
+                if (device_time_translator_->isReadyToTranslate())
+                {
+                    t = device_time_translator_->translate(frame.get_timestamp() * 1e6);
+                }
                 else
-                    t = ros::Time(_ros_time_base.toSec()+ (/*ms*/ frame.get_timestamp() - /*ms*/ _camera_time_base) / /*ms to seconds*/ 1000);
+                {
+                    ROS_WARN("device_time_translator is not ready yet, using ros::Time::now()");
+                    t = ros::Time::now();
+                }
 
                 std::map<stream_index_pair, bool> is_frame_arrived(_is_frame_arrived);
                 std::vector<rs2::frame> frames;
@@ -713,8 +716,6 @@ void BaseRealSenseNode::setupStreams()
                 if (0 != _info_publisher[stream_index].getNumSubscribers() ||
                     0 != _imu_publishers[stream_index].getNumSubscribers())
                 {
-                    double elapsed_camera_ms = (/*ms*/ frame.get_timestamp() - /*ms*/ _camera_time_base) / /*ms to seconds*/ 1000;
-                    ros::Time t(_ros_time_base.toSec() + elapsed_camera_ms);
 
                     auto imu_msg = sensor_msgs::Imu();
                     imu_msg.header.frame_id = _optical_frame_id[stream_index];
@@ -739,7 +740,7 @@ void BaseRealSenseNode::setupStreams()
                     }
                     _seq[stream_index] += 1;
                     imu_msg.header.seq = _seq[stream_index];
-                    imu_msg.header.stamp = t;
+                    //imu_msg.header.stamp = t;
                     _imu_publishers[stream_index].publish(imu_msg);
                     ROS_DEBUG("Publish %s stream", rs2_stream_to_string(frame.get_profile().stream_type()));
                 }
