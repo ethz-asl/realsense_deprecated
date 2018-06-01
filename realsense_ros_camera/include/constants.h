@@ -32,9 +32,9 @@ namespace realsense_ros_camera
     const uint16_t RS435_RGB_PID    = 0x0b07; // AWGC
     const uint16_t RS405_PID        = 0x0b0c; // DS5U
 
-    const bool ALIGN_DEPTH    = false;
-    const bool POINTCLOUD     = false;
-    const bool SYNC_FRAMES    = false;
+    const bool ALIGN_DEPTH    = true;
+    const bool POINTCLOUD     = true;
+    const bool SYNC_FRAMES    = true;
 
     const int DEPTH_WIDTH     = 640;
     const int DEPTH_HEIGHT    = 480;
@@ -52,21 +52,21 @@ namespace realsense_ros_camera
     const int FISHEYE_HEIGHT  = 480;
 
 
-    const int DEPTH_FPS       = 30;
-    const int INFRA1_FPS      = 30;
-    const int INFRA2_FPS      = 30;
-    const int COLOR_FPS       = 30;
-    const int FISHEYE_FPS     = 30;
+    const int DEPTH_FPS       = 6;
+    const int INFRA1_FPS      = 6;
+    const int INFRA2_FPS      = 6;
+    const int COLOR_FPS       = 6;
+    const int FISHEYE_FPS     = 6;
     const int GYRO_FPS        = 1000;
     const int ACCEL_FPS       = 1000;
 
 
     const bool ENABLE_DEPTH   = true;
-    const bool ENABLE_INFRA1  = true;
-    const bool ENABLE_INFRA2  = true;
+    const bool ENABLE_INFRA1  = false;
+    const bool ENABLE_INFRA2  = false;
     const bool ENABLE_COLOR   = true;
-    const bool ENABLE_FISHEYE = true;
-    const bool ENABLE_IMU     = true;
+    const bool ENABLE_FISHEYE = false;
+    const bool ENABLE_IMU     = false;
 
 
     const std::string DEFAULT_BASE_FRAME_ID            = "camera_link";
