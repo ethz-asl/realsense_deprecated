@@ -68,7 +68,8 @@ namespace realsense_ros_camera
     const bool ENABLE_FISHEYE = false;
     const bool ENABLE_IMU     = false;
 
-    const double TIME_OFFSET = 0.0;
+    const double TIME_OFFSET = -0.054489694613460184
+;
 
 
     const std::string DEFAULT_BASE_FRAME_ID            = "camera_link";
