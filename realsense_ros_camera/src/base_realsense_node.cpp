@@ -616,7 +616,7 @@ void BaseRealSenseNode::setupStreams()
                   }
 
                   //add in delay 
-                  t += _time_offset;
+                  t += ros::Duration(_time_offset);
 
                   auto stream_type = frame.get_profile().stream_type();
                   auto stream_index = frame.get_profile().stream_index();
