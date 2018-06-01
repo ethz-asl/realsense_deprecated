@@ -174,6 +174,8 @@ void BaseRealSenseNode::getParameters()
     _pnh.param("aligned_depth_to_infra1_frame_id",  _depth_aligned_frame_id[INFRA1],  DEFAULT_ALIGNED_DEPTH_TO_INFRA1_FRAME_ID);
     _pnh.param("aligned_depth_to_infra2_frame_id",  _depth_aligned_frame_id[INFRA2],  DEFAULT_ALIGNED_DEPTH_TO_INFRA2_FRAME_ID);
     _pnh.param("aligned_depth_to_fisheye_frame_id", _depth_aligned_frame_id[FISHEYE], DEFAULT_ALIGNED_DEPTH_TO_FISHEYE_FRAME_ID);
+
+    _pnh.param("time_offset", _time_offset, TIME_OFFSET);
 }
 
 void BaseRealSenseNode::setupDevice()
@@ -612,6 +614,9 @@ void BaseRealSenseNode::setupStreams()
                         "ros::Time::now()");
                     t = ros::Time::now();
                   }
+
+                  //add in delay 
+                  t += _time_offset;
 
                   auto stream_type = frame.get_profile().stream_type();
                   auto stream_index = frame.get_profile().stream_index();
