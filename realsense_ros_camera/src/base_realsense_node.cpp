@@ -107,8 +107,8 @@ void BaseRealSenseNode::getParameters()
 {
     ROS_INFO("getParameters...");
 
-    _pnh.param("max_speckle_size", _max_speckle_size, 500);
-    _pnh.param("max_speckle_diff", _max_speckle_diff, 50.0);
+    _pnh.param("max_speckle_size", _max_speckle_size, MAX_SPECKLE_SIZE);
+    _pnh.param("max_speckle_diff", _max_speckle_diff, MAX_SPECKLE_DIFF);
 
     _pnh.param("align_depth", _align_depth, ALIGN_DEPTH);
     _pnh.param("enable_pointcloud", _pointcloud, POINTCLOUD);

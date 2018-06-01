@@ -68,8 +68,9 @@ namespace realsense_ros_camera
     const bool ENABLE_FISHEYE = false;
     const bool ENABLE_IMU     = false;
 
-    const double TIME_OFFSET = -0.054489694613460184
-;
+    const double TIME_OFFSET = -0.054489694613460184;
+    const int MAX_SPECKLE_SIZE = 800;
+    const double MAX_SPECKLE_DIFF = 50.0;
 
 
     const std::string DEFAULT_BASE_FRAME_ID            = "camera_link";
@@ -80,11 +81,11 @@ namespace realsense_ros_camera
     const std::string DEFAULT_FISHEYE_FRAME_ID         = "camera_fisheye_frame";
     const std::string DEFAULT_IMU_FRAME_ID             = "camera_imu_frame";
 
-    const std::string DEFAULT_DEPTH_OPTICAL_FRAME_ID   = "camera_depth_optical_frame";
-    const std::string DEFAULT_INFRA1_OPTICAL_FRAME_ID  = "camera_infra1_optical_frame";
-    const std::string DEFAULT_INFRA2_OPTICAL_FRAME_ID  = "camera_infra2_optical_frame";
-    const std::string DEFAULT_COLOR_OPTICAL_FRAME_ID   = "camera_color_optical_frame";
-    const std::string DEFAULT_FISHEYE_OPTICAL_FRAME_ID = "camera_fisheye_optical_frame";
+    const std::string DEFAULT_DEPTH_OPTICAL_FRAME_ID   = "depth";
+    const std::string DEFAULT_INFRA1_OPTICAL_FRAME_ID  = "infra1";
+    const std::string DEFAULT_INFRA2_OPTICAL_FRAME_ID  = "infra2";
+    const std::string DEFAULT_COLOR_OPTICAL_FRAME_ID   = "color";
+    const std::string DEFAULT_FISHEYE_OPTICAL_FRAME_ID = "fisheye";
     const std::string DEFAULT_ACCEL_OPTICAL_FRAME_ID   = "camera_accel_optical_frame";
     const std::string DEFAULT_GYRO_OPTICAL_FRAME_ID    = "camera_gyro_optical_frame";
     const std::string DEFAULT_IMU_OPTICAL_FRAME_ID     = "camera_imu_optical_frame";
