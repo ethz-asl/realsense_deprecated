@@ -16,6 +16,7 @@ find_package(catkin REQUIRED COMPONENTS
     tf
     dynamic_reconfigure
     pcl_ros
+    cuckoo_time_translator
     )
 
 if(BUILD_WITH_OPENMP)

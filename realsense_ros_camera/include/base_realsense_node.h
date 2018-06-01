@@ -8,7 +8,7 @@
 #include <realsense_ros_camera/base_d400_paramsConfig.h>
 #include <realsense_ros_camera/rs415_paramsConfig.h>
 #include <realsense_ros_camera/rs435_paramsConfig.h>
-
+#include <cuckoo_time_translator/DeviceTimeTranslator.h>
 
 namespace realsense_ros_camera
 {
@@ -97,6 +97,8 @@ namespace realsense_ros_camera
                         std::vector<uint8_t>& out_vec);
 
         const rs2_extrinsics _i_ex{{1, 0, 0, 0, 1, 0, 0, 0, 1}, {0, 0, 0}};
+
+        std::unique_ptr<cuckoo_time_translator::UnwrappedDeviceTimeTranslator> device_time_translator_;
 
         std::string _json_file_path;
         std::string _serial_no;

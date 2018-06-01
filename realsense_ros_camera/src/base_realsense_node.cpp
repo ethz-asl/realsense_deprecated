@@ -22,6 +22,11 @@ BaseRealSenseNode::BaseRealSenseNode(ros::NodeHandle& nodeHandle,
     _intialize_time_base(false),
     _namespace(getNamespaceStr())
 {
+
+    device_time_translator_.reset(new cuckoo_time_translator::UnwrappedDeviceTimeTranslator(cuckoo_time_translator::ClockParameters(1e9),
+                                  _pnh.getNamespace(),
+                                  cuckoo_time_translator::Defaults().setFilterAlgorithm(cuckoo_time_translator::FilterAlgorithm::ConvexHull)));
+
     // Types for depth stream
     _is_frame_arrived[DEPTH] = false;
     _format[DEPTH] = RS2_FORMAT_Z16;   // libRS type
@@ -531,24 +536,8 @@ void BaseRealSenseNode::setupStreams()
         auto frame_callback = [this](rs2::frame frame)
         {
             try{
-                // We compute a ROS timestamp which is based on an initial ROS time at point of first frame,
-                // and the incremental timestamp from the camera.
-                // In sync mode the timestamp is based on ROS time
-                if (false == _intialize_time_base)
-                {
-                    if (RS2_TIMESTAMP_DOMAIN_SYSTEM_TIME == frame.get_frame_timestamp_domain())
-                        ROS_WARN("Frame metadata isn't available! (frame_timestamp_domain = RS2_TIMESTAMP_DOMAIN_SYSTEM_TIME)");
-
-                    _intialize_time_base = true;
-                    _ros_time_base = ros::Time::now();
-                    _camera_time_base = frame.get_timestamp();
-                }
-
-                ros::Time t;
-                if (_sync_frames)
-                    t = ros::Time::now();
-                else
-                    t = ros::Time(_ros_time_base.toSec()+ (/*ms*/ frame.get_timestamp() - /*ms*/ _camera_time_base) / /*ms to seconds*/ 1000);
+                ros::Time now = ros::Time::now();
+                ros::Time last_depth_t;
 
                 std::map<stream_index_pair, bool> is_frame_arrived(_is_frame_arrived);
                 std::vector<rs2::frame> frames;
@@ -565,23 +554,41 @@ void BaseRealSenseNode::setupStreams()
                         auto stream_index = f.get_profile().stream_index();
                         updateIsFrameArrived(is_frame_arrived, stream_type, stream_index);
 
-                        ROS_DEBUG("Frameset contain (%s, %d) frame. frame_number: %llu ; frame_TS: %f ; ros_TS(NSec): %lu",
-                                  rs2_stream_to_string(stream_type), stream_index, frame.get_frame_number(), frame.get_timestamp(), t.toNSec());
+                        if (stream_type == RS2_STREAM_DEPTH) {
+                          device_time_translator_->update(
+                              static_cast<std::uint64_t>(f.get_timestamp() *
+                                                         1e6),
+                              now);
+                        }
 
-                        stream_index_pair sip{stream_type,stream_index};
-                        publishFrame(f, t,
-                                     sip,
-                                     _image,
-                                     _info_publisher,
-                                     _image_publishers, _seq,
-                                     _camera_info, _optical_frame_id,
-                                     _encoding);
-                        if (_align_depth && stream_type != RS2_STREAM_DEPTH)
-                        {
-                            frames.push_back(f);
+                        ros::Time t;
+                        if (device_time_translator_->isReadyToTranslate()) {
+                          t = device_time_translator_->translate(
+                              f.get_timestamp() * 1e6);
+                        } else {
+                          ROS_WARN(
+                              "device_time_translator is not ready yet, using "
+                              "ros::Time::now()");
+                          t = ros::Time::now();
+                        }
+
+                    ROS_DEBUG(
+                        "Frameset contain (%s, %d) frame. frame_number: %llu ; "
+                        "frame_TS: %f ; ros_TS(NSec): %lu",
+                        rs2_stream_to_string(stream_type), stream_index,
+                        frame.get_frame_number(), frame.get_timestamp(),
+                        t.toNSec());
+
+                    stream_index_pair sip{stream_type, stream_index};
+                    publishFrame(f, t, sip, _image, _info_publisher,
+                                 _image_publishers, _seq, _camera_info,
+                                 _optical_frame_id, _encoding);
+                    if (_align_depth && stream_type != RS2_STREAM_DEPTH) {
+                      frames.push_back(f);
                         }
                         else
                         {
+                            last_depth_t = t;
                             depth_frame = f;
                             is_depth_arrived = true;
                         }
@@ -590,31 +597,42 @@ void BaseRealSenseNode::setupStreams()
                     if (_align_depth && is_depth_arrived)
                     {
                         ROS_DEBUG("publishAlignedDepthToOthers(...)");
-                        publishAlignedDepthToOthers(depth_frame, frames, t);
+                        publishAlignedDepthToOthers(depth_frame, frames, last_depth_t);
                     }
                 }
                 else
                 {
-                    auto stream_type = frame.get_profile().stream_type();
-                    auto stream_index = frame.get_profile().stream_index();
-                    updateIsFrameArrived(is_frame_arrived, stream_type, stream_index);
-                    ROS_DEBUG("Single video frame arrived (%s, %d). frame_number: %llu ; frame_TS: %f ; ros_TS(NSec): %lu",
-                              rs2_stream_to_string(stream_type), stream_index, frame.get_frame_number(), frame.get_timestamp(), t.toNSec());
+                  ros::Time t;
+                  if (device_time_translator_->isReadyToTranslate()) {
+                    t = device_time_translator_->translate(
+                        frame.get_timestamp() * 1e6);
+                  } else {
+                    ROS_WARN(
+                        "device_time_translator is not ready yet, using "
+                        "ros::Time::now()");
+                    t = ros::Time::now();
+                  }
 
-                    stream_index_pair sip{stream_type,stream_index};
-                    publishFrame(frame, t,
-                                 sip,
-                                 _image,
-                                 _info_publisher,
-                                 _image_publishers, _seq,
-                                 _camera_info, _optical_frame_id,
-                                 _encoding);
+                  auto stream_type = frame.get_profile().stream_type();
+                  auto stream_index = frame.get_profile().stream_index();
+                  updateIsFrameArrived(is_frame_arrived, stream_type,
+                                       stream_index);
+                  ROS_DEBUG(
+                      "Single video frame arrived (%s, %d). frame_number: %llu "
+                      "; frame_TS: %f",
+                      rs2_stream_to_string(stream_type), stream_index,
+                      frame.get_frame_number(), frame.get_timestamp());
+
+                  stream_index_pair sip{stream_type, stream_index};
+                  publishFrame(frame, t, sip, _image, _info_publisher,
+                               _image_publishers, _seq, _camera_info,
+                               _optical_frame_id, _encoding);
                 }
 
                 if(_pointcloud && (0 != _pointcloud_publisher.getNumSubscribers()))
                 {
                     ROS_DEBUG("publishPCTopic(...)");
-                    publishRgbToDepthPCTopic(t, is_frame_arrived);
+                    publishRgbToDepthPCTopic(last_depth_t, is_frame_arrived);
                 }
             }
             catch(const std::exception& ex)
@@ -713,8 +731,6 @@ void BaseRealSenseNode::setupStreams()
                 if (0 != _info_publisher[stream_index].getNumSubscribers() ||
                     0 != _imu_publishers[stream_index].getNumSubscribers())
                 {
-                    double elapsed_camera_ms = (/*ms*/ frame.get_timestamp() - /*ms*/ _camera_time_base) / /*ms to seconds*/ 1000;
-                    ros::Time t(_ros_time_base.toSec() + elapsed_camera_ms);
 
                     auto imu_msg = sensor_msgs::Imu();
                     imu_msg.header.frame_id = _optical_frame_id[stream_index];
@@ -739,7 +755,7 @@ void BaseRealSenseNode::setupStreams()
                     }
                     _seq[stream_index] += 1;
                     imu_msg.header.seq = _seq[stream_index];
-                    imu_msg.header.stamp = t;
+                    //imu_msg.header.stamp = t;
                     _imu_publishers[stream_index].publish(imu_msg);
                     ROS_DEBUG("Publish %s stream", rs2_stream_to_string(frame.get_profile().stream_type()));
                 }
