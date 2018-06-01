@@ -106,6 +106,7 @@ namespace realsense_ros_camera
 
         int _max_speckle_size;
         double _max_speckle_diff;
+        double _time_offset;
         std::map<stream_index_pair, rs2_intrinsics> _stream_intrinsics;
         std::map<stream_index_pair, int> _width;
         std::map<stream_index_pair, int> _height;
