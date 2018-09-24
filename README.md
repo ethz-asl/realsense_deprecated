@@ -1,3 +1,5 @@
+# DEPRECATED USE REALSENSE (D400) OR MAPLAB_REALSENSE (ZR300) INSTEAD
+
 # ROS Wrapper for Intel&reg; RealSense&trade; Devices
 These are packages for using Intel RealSense cameras (D400 series and the SR300) with ROS.
 
