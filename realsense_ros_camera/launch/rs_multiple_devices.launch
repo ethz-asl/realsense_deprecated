@@ -1,0 +1,19 @@
+<launch>
+  <arg name="serial_no_camera1"    default=""/> <!-- Note: Replace with actual serial number -->
+  <arg name="serial_no_camera2"    default=""/> <!-- Note: Replace with actual serial number -->
+  <arg name="enable_pointcloud"    default="false"/>
+
+  <group ns="camera1">
+    <include file="$(find realsense_ros_camera)/launch/includes/nodelet.launch.xml">
+      <arg name="serial_no"    value="$(arg serial_no_camera1)"/>
+      <arg name="enable_pointcloud" value="$(arg enable_pointcloud)"/>
+    </include>
+  </group>
+
+  <group ns="camera2">
+    <include file="$(find realsense_ros_camera)/launch/includes/nodelet.launch.xml">
+      <arg name="serial_no"    value="$(arg serial_no_camera2)"/>
+      <arg name="enable_pointcloud" value="$(arg enable_pointcloud)"/>
+    </include>
+  </group>
+</launch>
